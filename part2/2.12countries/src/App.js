@@ -44,10 +44,27 @@ const Languages = ({ languages }) => {
 
 const Weather = ({country}) => {
   const api_key = process.env.REACT_APP_API_KEY
-  console.log('%cApp.js line:47 api_key', 'color: #007acc;', api_key);
+  const capital = country.capital[0]
+  const [temp, setTemp] = useState(0)
+  const [wind, setWind] = useState(0)
+  const [img, setImg] = useState("")
+
+  const url = "https://api.openweathermap.org/data/2.5/weather?lat=" + country.capitalInfo.latlng[0] + "&lon=" + country.capitalInfo.latlng[1] + "&appid=" + api_key +"&units=metric"
+
+  axios.get(url).then(response => {
+    const data = response.data
+    setTemp(data.main.temp)
+    setWind(data.wind.speed)
+    setImg(" http://openweathermap.org/img/wn/" + data.weather[0].icon + "@2x.png")
+  })
 
   return (
-    <p>It's sunny</p>
+    <div>
+      <h2>Weather in {capital}</h2>
+      <p>temperature {temp} Celcius</p>
+      <img src={img}></img>
+      <p>wind {wind} m/s</p>
+    </div>
   )
 }
 
@@ -61,7 +78,7 @@ const CountryExpanded = ({ country }) => {
     <br />
     <img src={country.flags.png}></img>
     <br />
-    <Weather />
+    <Weather country={country} />
   </div>)
 }
 
