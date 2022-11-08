@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import axios from 'axios'
 
 const Search = ({ searchbox, handleSearchboxChange }) => {
@@ -18,7 +18,7 @@ const Stats = ({ country }) => {
   return (<>
     <p>captial {country.capital.map((name, index) => {
       return (
-        <>{name} {index < country.capital.length - 1 ? ", " : ""}</>
+        <span key={name}>{name} {index < country.capital.length - 1 ? ", " : ""}</span>
       );
     })}</p>
     <p>area {country.area}</p>
@@ -42,31 +42,43 @@ const Languages = ({ languages }) => {
   )
 }
 
+const CountryExpanded = ({ country }) => {
+  return (<div>
+    <h1>{country.name.common}</h1>
+    <br />
+    <Stats country={country} />
+    <br />
+    <Languages languages={country.languages} />
+    <br />
+    <img src={country.flags.png}></img>
+  </div>)
+}
+
+const CountryLi = ({ country }) => {
+  const [showResults, setShowResults] = useState(false)
+  const onClick = () => setShowResults(!showResults)
+  return (
+  <li key={country.name.common}>
+    {country.name.common}
+    <input type="submit" value="Search" onClick={onClick} />
+      { showResults ? <CountryExpanded country={country} /> : null }
+  </li>
+  )
+}
 const Output = ({ filteredCountriesList }) => {
+
   if (filteredCountriesList.length > 10) {
     return (
       <p>Too many matches, specify another filter</p>
     )
-  } else if (filteredCountriesList.length === 1) {
-    const country = filteredCountriesList[0]
-
-    console.log('%cApp.js line:37 country', 'color: #007acc;', country);
-    return (
-      <>
-        <h1>{country.name.common}</h1>
-        <br />
-        <Stats country={country} />
-        <br />
-        <Languages languages={country.languages} />
-        <br />
-        <img src={country.flags.png}></img>
-      </>
-    )
   } else {
-
     return (
       <ul>
-        {filteredCountriesList.map(countries => <li key={countries.name.common}>{countries.name.common}</li>)}
+        {filteredCountriesList.map((country) => {
+          return (
+            <CountryLi country={country}/>) 
+        })
+        }
       </ul>
     )
   }
