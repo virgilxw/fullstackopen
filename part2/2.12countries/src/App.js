@@ -28,7 +28,7 @@ const Stats = ({ country }) => {
 
 const Languages = ({ languages }) => {
   return (
-    <>
+    <div>
       <h2>languages:</h2>
       <ul>
         {
@@ -38,7 +38,16 @@ const Languages = ({ languages }) => {
             )
           })}
       </ul>
-    </>
+    </div>
+  )
+}
+
+const Weather = ({country}) => {
+  const api_key = process.env.REACT_APP_API_KEY
+  console.log('%cApp.js line:47 api_key', 'color: #007acc;', api_key);
+
+  return (
+    <p>It's sunny</p>
   )
 }
 
@@ -51,6 +60,8 @@ const CountryExpanded = ({ country }) => {
     <Languages languages={country.languages} />
     <br />
     <img src={country.flags.png}></img>
+    <br />
+    <Weather />
   </div>)
 }
 
@@ -58,7 +69,7 @@ const CountryLi = ({ country }) => {
   const [showResults, setShowResults] = useState(false)
   const onClick = () => setShowResults(!showResults)
   return (
-  <li key={country.name.common}>
+  <li>
     {country.name.common}
     <input type="submit" value="Search" onClick={onClick} />
       { showResults ? <CountryExpanded country={country} /> : null }
@@ -76,7 +87,7 @@ const Output = ({ filteredCountriesList }) => {
       <ul>
         {filteredCountriesList.map((country) => {
           return (
-            <CountryLi country={country}/>) 
+            <CountryLi key={country.name.common} country={country}/>) 
         })
         }
       </ul>
