@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import pbService from './services'
 
-const PersonForm = ({addPerson, newName, handleNameChange, newNumber, handleNumberChange}) => {
+const PersonForm = ({ addPerson, newName, handleNameChange, newNumber, handleNumberChange }) => {
   return (
     <form onSubmit={addPerson}>
       <div>
@@ -21,10 +21,20 @@ const PersonForm = ({addPerson, newName, handleNameChange, newNumber, handleNumb
   )
 }
 
-const Numbers = ({ persons }) => {
+const Numbers = ({ persons, setPersons }) => {
+  const drop = (person) => {
+    if (window.confirm(`Drop ${person["name"]} ?`)) {
+      pbService.drop(person.id).then(retrunedBook => {
+        pbService.getAll().then(input => setPersons(input))
+      })
+    }
+  }
+
   return (
     <ul>
-      {persons.map((person) => <li key={person.id}>{person.name} {person.number}</li>)}
+      {persons.map(
+        (person) => <li key={person.id}>{person.name} {person.number}<button onClick={() => {drop(person)}}>delete</button></li>
+      )}
     </ul>
   )
 }
@@ -35,15 +45,8 @@ const App = () => {
 
   // Load original name list from database
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
-      })
+    pbService.getAll().then(input => setPersons(input))
   }, [])
-  console.log('render', persons.length, 'persons')
 
   // Name handler
   const [newName, setNewName] = useState('')
@@ -59,24 +62,44 @@ const App = () => {
     setNewNumber(event.target.value)
   }
 
+  // Constructor
+  const personConstructor = {
+    name: newName,
+    number: newNumber
+  }
+
   // New person entry handler
   const addPerson = (event) => {
     event.preventDefault()
 
-    if (persons.map(person => person.name.toLowerCase()).includes(newName.toLowerCase())) {
-      alert(newName + " is already added to the phonebook")
+    const nameMatch = () =>{
+      
+      return persons.reduce((p, c) => {
+        return c.name.includes(newName.toLowerCase())? c: p
+      }, false)
+    }
+
+    if (nameMatch()) 
+    {
+      const match= nameMatch()
+      if (window.confirm(`${newName} is already added to the phonebook. Replace the old number with the new one entered?`)) {
+        pbService.update(match.id, personConstructor).then(retrunedBook => {
+          pbService.getAll().then(input => setPersons(input))
+        })
+        setNewName('')
+        setNewNumber('')
+      }
     } else if (persons.map(person => person.number).includes(newNumber)) {
       alert(newNumber + " is already added to the phonebook")
     }
     else {
-
-      const personObject = {
-        id: persons.length + 1,
-        name: newName,
-        number: newNumber
-      }
-
-      setPersons(persons.concat(personObject))
+      pbService.create(personConstructor).then(retrunedBook => {
+        pbService.getAll().then(input => setPersons(input))
+      }).catch(error => {
+        alert(
+          `failed to push '${personConstructor.name}' to the server`
+        )
+      })
       setNewName('')
       setNewNumber('')
     }
@@ -85,9 +108,9 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <PersonForm addPerson={addPerson} newName={newName} handleNameChange={handleNameChange} newNumber={newNumber} handleNumberChange={handleNumberChange}/>
+      <PersonForm addPerson={addPerson} newName={newName} handleNameChange={handleNameChange} newNumber={newNumber} handleNumberChange={handleNumberChange} />
       <h2>Numbers</h2>
-      <Numbers persons={persons} />
+      <Numbers persons={persons} setPersons={setPersons} />
     </div>
   )
 }
