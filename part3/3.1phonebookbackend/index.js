@@ -30,11 +30,12 @@ app.get('/info', (req, res) => {
   res.send(`<p>Phonebook has info for ${persons.length} people </p> ${Date()}`)
 })
 
-const generateId = () => {
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(n => n.id))
-    : 0
-  return maxId + 1
+const generateId = (id) => {
+    if (persons.some(person => person.id === id) | typeof id === 'undefined') {
+        return generateId(Math.round(Math.random() * 1000))
+    } else {
+        return id
+    }
 }
 
 app.post('/api/persons', (request, response) => {
