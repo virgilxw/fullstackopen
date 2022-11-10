@@ -31,7 +31,7 @@ app.get('/info', (req, res) => {
 })
 
 const generateId = (id) => {
-    if (persons.some(person => person.id === id) | typeof id === 'undefined') {
+    if (persons.some(person => person.id === id) || typeof id === 'undefined') {
         return generateId(Math.round(Math.random() * 1000))
     } else {
         return id
@@ -41,12 +41,26 @@ const generateId = (id) => {
 app.post('/api/persons', (request, response) => {
     const body = request.body
 
+    console.log(body.name.toLowerCase())
+
     if (!body) {
       return response.status(400).json({ 
         error: 'content missing' 
       })
+    } else if (persons.some(person => person.name.toLowerCase() === body.name.toLowerCase() && persons.some(person => person.number === body.number))) {
+        return response.status(403).json({ 
+            error: 'Duplicate entry found' 
+          })
+    } else if (persons.some(person => person.name.toLowerCase() === body.name.toLowerCase())) {
+        return response.status(403).json({ 
+            error: 'Name already exists' 
+          })
+    }else if (persons.some(person => person.number === body.number)) {
+        return response.status(403).json({ 
+            error: 'Number already exists' 
+          })
     }
-  
+
     const person = {
       id: generateId(),
       name: body.name,
